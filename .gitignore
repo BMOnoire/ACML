@@ -1,0 +1,11 @@
+.git
+.idea
+__pycache__
+saves
+main
+build
+dist
+test_stuff
+output
+debug.txt
+*.spec
