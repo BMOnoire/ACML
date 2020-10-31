@@ -17,27 +17,35 @@ class NN:
         self.bias_1L     = np.ones((1, n_outputs))
 
 
-    def _sigmoid(self, x):
+    def __sigmoid(self, x):
         return 1.0 / (1.0 + np.exp(-x))
 
 
-    def _derivate_sigmoid(self, x):
-        pass
-        # TODO
+    def __derivate_sigmoid(self, x):
+        return (np.exp(-x)) / ((np.exp(-x) + 1.0) ** 2)
 
 
-    def forward_propagation(self, inputs):
-        hidden_layer = np.dot(inputs, self.weights_0L) + self.bias_0L
-        hidden_layer = self._sigmoid(hidden_layer[0])
-        outputs = np.dot(hidden_layer, self.weights_1L) + self.bias_1L
-        outputs = self._sigmoid(outputs[0])
-        return outputs
+    def forward_propagation(self, input):
+        if len(input) != self.input_size:
+            print("ERROR: input size is not suitable for NN")
+            return None
+        hidden_layer = self.__sigmoid(input)
+        hidden_layer = np.dot(input, self.weights_0L) + self.bias_0L
+        hidden_layer = self.__sigmoid(hidden_layer[0])
+        output = np.dot(hidden_layer, self.weights_1L) + self.bias_1L
+        output = self.__sigmoid(output[0])
+        for a in output:
+            print(a)
+        return output
 
 
 def main():
     dataset = np.eye(INPUT_LAYER)
 
     neural_network = NN(INPUT_LAYER, HIDDEN_LAYER, OUTPUT_LAYER)
+    for element in dataset:
+        qwe = neural_network.forward_propagation(element)
+        print(qwe)
 
 
 
