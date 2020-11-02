@@ -1,5 +1,6 @@
 import numpy as np
 from datetime import datetime
+from scipy.special import expit
 import time
 
 
@@ -7,28 +8,21 @@ import time
 INPUT_LAYER = 8
 HIDDEN_LAYER = 3
 OUTPUT_LAYER = 8
-EPOCHS = 10000
+EPOCHS = 1000
 
-DATASET = [
-    np.array([1, 0, 0, 0, 0, 0, 0, 0]),
-    np.array([0, 1, 0, 0, 0, 0, 0, 0]),
-    np.array([0, 0, 1, 0, 0, 0, 0, 0]),
-    np.array([0, 0, 0, 1, 0, 0, 0, 0]),
-    np.array([0, 0, 0, 0, 1, 0, 0, 0]),
-    np.array([0, 0, 0, 0, 0, 1, 0, 0]),
-    np.array([0, 0, 0, 0, 0, 0, 1, 0]),
-    np.array([0, 0, 0, 0, 0, 0, 0, 1])
-]
-LABEL = [
-    np.array([1, 0, 0, 0, 0, 0, 0, 0]),
-    np.array([0, 1, 0, 0, 0, 0, 0, 0]),
-    np.array([0, 0, 1, 0, 0, 0, 0, 0]),
-    np.array([0, 0, 0, 1, 0, 0, 0, 0]),
-    np.array([0, 0, 0, 0, 1, 0, 0, 0]),
-    np.array([0, 0, 0, 0, 0, 1, 0, 0]),
-    np.array([0, 0, 0, 0, 0, 0, 1, 0]),
-    np.array([0, 0, 0, 0, 0, 0, 0, 1])
-]
+#DATASET = [
+#    np.array([1, 0, 0, 0, 0, 0, 0, 0]),
+#    np.array([0, 1, 0, 0, 0, 0, 0, 0]),
+#    np.array([0, 0, 1, 0, 0, 0, 0, 0]),
+#    np.array([0, 0, 0, 1, 0, 0, 0, 0]),
+#    np.array([0, 0, 0, 0, 1, 0, 0, 0]),
+#    np.array([0, 0, 0, 0, 0, 1, 0, 0]),
+#    np.array([0, 0, 0, 0, 0, 0, 1, 0]),
+#    np.array([0, 0, 0, 0, 0, 0, 0, 1])
+#]
+DATASET = np.identity(8)
+#DATASET = np.array([1, 0, 0, 0, 0, 0, 0, 0]).T
+LABEL = DATASET
 
 class NN:
 
@@ -45,7 +39,8 @@ class NN:
 
 
     def __sigmoid(self, z):
-        return 1.0 / (1.0 + np.exp(-z))
+        return expit(z)
+        # return 1.0 / (1.0 + np.exp(-z))
 
 
     def __derivative_sigmoid(self, z):
@@ -60,66 +55,80 @@ class NN:
         return 1 if z > 0 else 0
 
 
-    def __feed_forward(self, input):
-        input = np.array([input]).T
+    def __forward_propagation(self, input):
+        #input = np.array([input]).T
         # sigm( (W1 * I) + B1 ) = A1
         Z1 = np.dot(self.W1, input) + self.B1
         self.A1 = self.__sigmoid(Z1)
         # sigm( (W2 * A1) + B2 ) = A2
         Z2 = np.dot(self.W2, self.A1) + self.B2
         self.A2 = self.__sigmoid(Z2)
-        return self.A2.T[0]
+        return self.A2
 
-
-    def __back_propagation(self, Y, Y_pred):
-        diff_vec_Y = Y - Y_pred
-        cost = 0
+    def __cost_function(self, Y_expected):
+        mean_cost = 0
+        diff_vec_Y = (self.A2 - Y_expected).T
         for val_d in diff_vec_Y:
-            cost += diff_vec_Y**2
-        cost = 0.5*cost
-        print(cost)
-        derivative_cost = diff_vec_Y * self.__derivative_sigmoid(Y)
-        diff_matrix_1L = np.dot(self.W1.T, derivative_cost)
-        diff_matrix_0L = np.dot(self.input.T,  (np.dot(derivative_cost, self.W2.T) * self.__derivative_sigmoid(self.layer1)))
-
-        def back_propagate(W1, b1, W2, b2, cache):
-            # Retrieve also A1 and A2 from dictionary "cache"
-            A1 = cache['A1']
-            A2 = cache['A2']
-
-            # Backward propagation: calculate dW1, db1, dW2, db2.
-            dZ2 = A2 - Y
-            dW2 = (1 / m) * np.dot(dZ2, A1.T)
-            db2 = (1 / m) * np.sum(dZ2, axis=1, keepdims=True)
-
-            dZ1 = np.multiply(np.dot(W2.T, dZ2), 1 - np.power(A1, 2))
-            dW1 = (1 / m) * np.dot(dZ1, X.T)
-            db1 = (1 / m) * np.sum(dZ1, axis=1, keepdims=True)
-
-            # Updating the parameters according to algorithm
-            W1 = W1 - learning_rate * dW1
-            b1 = b1 - learning_rate * db1
-            W2 = W2 - learning_rate * dW2
-            b2 = b2 - learning_rate * db2
-
-            return W1, W2, b1, b2
+            cost = 0
+            for val in val_d:
+                cost += val**2
+            mean_cost += 0.5*cost
+        return (1/8) * mean_cost
 
 
-            # application of the chain rule to find derivative of the loss function with respect to weights2 and weights1
-        #d_weights2 = np.dot(self.layer1.T, (2*(self.y - self.output) * sigmoid_derivative(self.output)))
-        #d_weights1 = np.dot(self.input.T,  (np.dot(2*(self.y - self.output) * sigmoid_derivative(self.output), self.weights2.T) * sigmoid_derivative(self.layer1)))
+    #def __back_propagation(self, Y, Y_pred):
+    #    diff_vec_Y = Y - Y_pred
 
-        # update the weights with the derivative (slope) of the loss function
-        #self.weights1 += d_weights1
-        #self.weights2 += d_weights2
+    #    derivative_cost = diff_vec_Y * self.__derivative_sigmoid(Y)
+    #    diff_matrix_1L = np.dot(self.W1.T, derivative_cost)
+    #    diff_matrix_0L = np.dot(self.input.T,  (np.dot(derivative_cost, self.W2.T) * self.__derivative_sigmoid(self.layer1)))
 
-        return 1
+    def __back_propagation(self, X, Y_expected, learning_rate):
+        #(dataset, output, 1)
+        # Backward propagation: calculate dW1, db1, dW2, db2.
+        d_Z2 = self.A2 - Y_expected
+        d_W2 = (1 / 8) * np.dot(d_Z2, self.A1.T)
+        d_B2 = (1 / 8) * np.sum(d_Z2, axis=1, keepdims=True)
+
+        size_d_Z2 = d_Z2.shape
+        size_d_W2 = d_W2.shape
+        size_d_B2 = d_B2.shape
+
+        size_Z2 = self.A2.shape
+        size_W2 = self.W2.shape
+        size_B2 = self.B2.shape
+
+        d_Z1 = np.multiply(np.dot(self.W2.T, d_Z2), 1 - np.power(self.A1, 2))
+        size_d_Z1 = d_Z1.shape
+        size_Z1 = self.A1.shape
+        d_W1 = (1 / 8) * np.dot(d_Z1, X.T)
+        size_d_W1 = d_W1.shape
+        size_W1 = self.W1.shape
+        d_B1 = (1 / 8) * np.sum(d_Z1, axis=1, keepdims=True)
+
+
+
+        size_d_Z1 = d_Z1.shape
+        size_d_W1 = d_W1.shape
+        size_d_B1 = d_B1.shape
+
+        size_Z1 = self.A1.shape
+        size_W1 = self.W1.shape
+        size_B1 = self.B1.shape
+
+        # Updating the parameters according to algorithm
+        self.W1 = self.W1 - learning_rate * d_W1
+        self.B1 = self.B1 - learning_rate * d_B1
+        self.W2 = self.W2 - learning_rate * d_W2
+        self.B2 = self.B2 - learning_rate * d_B2
+
 
     def train(self, dataset, label, epochs):
         for epoch in range(epochs):
-            for input in dataset:
-                output = self.__feed_forward(input)
-                asd = self.__back_propagation(output, input)
+
+            output = self.__forward_propagation(dataset)
+            print(self.__cost_function(label))
+            asd = self.__back_propagation(dataset, label, 1)
 
 
 def main():
