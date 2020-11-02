@@ -19,6 +19,16 @@ DATASET = [
     np.array([0, 0, 0, 0, 0, 0, 1, 0]),
     np.array([0, 0, 0, 0, 0, 0, 0, 1])
 ]
+LABEL = [
+    np.array([1, 0, 0, 0, 0, 0, 0, 0]),
+    np.array([0, 1, 0, 0, 0, 0, 0, 0]),
+    np.array([0, 0, 1, 0, 0, 0, 0, 0]),
+    np.array([0, 0, 0, 1, 0, 0, 0, 0]),
+    np.array([0, 0, 0, 0, 1, 0, 0, 0]),
+    np.array([0, 0, 0, 0, 0, 1, 0, 0]),
+    np.array([0, 0, 0, 0, 0, 0, 1, 0]),
+    np.array([0, 0, 0, 0, 0, 0, 0, 1])
+]
 
 class NN:
 
@@ -53,22 +63,24 @@ class NN:
     def __feed_forward(self, input):
         input = np.array([input]).T
         # sigm( (W1 * I) + B1 ) = A1
-        self.A1 = self.__sigmoid(np.dot(self.W1, input) + self.B1)
+        Z1 = np.dot(self.W1, input) + self.B1
+        self.A1 = self.__sigmoid(Z1)
         # sigm( (W2 * A1) + B2 ) = A2
-        self.A2 = self.__sigmoid(np.dot(self.W2, self.A1) + self.B2)
+        Z2 = np.dot(self.W2, self.A1) + self.B2
+        self.A2 = self.__sigmoid(Z2)
         return self.A2.T[0]
 
 
     def __back_propagation(self, Y, Y_pred):
         diff_vec_Y = Y - Y_pred
         cost = 0
-        for val_d in diff_vec:
-            cost += diff_vec**2
+        for val_d in diff_vec_Y:
+            cost += diff_vec_Y**2
         cost = 0.5*cost
         print(cost)
-        derivative_cost = diff_vec * self.__derivative_sigmoid(Y)
-        diff_matrix_1L = np.dot(self.weights_1L.T, derivative_cost)
-        diff_matrix_0L = np.dot(self.input.T,  (np.dot(derivative_cost, self.weights2.T) * sigmoid_derivative(self.layer1)))
+        derivative_cost = diff_vec_Y * self.__derivative_sigmoid(Y)
+        diff_matrix_1L = np.dot(self.W1.T, derivative_cost)
+        diff_matrix_0L = np.dot(self.input.T,  (np.dot(derivative_cost, self.W2.T) * self.__derivative_sigmoid(self.layer1)))
 
         def back_propagate(W1, b1, W2, b2, cache):
             # Retrieve also A1 and A2 from dictionary "cache"
@@ -103,7 +115,7 @@ class NN:
 
         return 1
 
-    def train(self, dataset, epochs):
+    def train(self, dataset, label, epochs):
         for epoch in range(epochs):
             for input in dataset:
                 output = self.__feed_forward(input)
@@ -116,7 +128,7 @@ def main():
     mean_time = 0
     #for i in range(10):
     start_time = datetime.now()
-    neural_network.train(DATASET, EPOCHS)
+    neural_network.train(DATASET, LABEL, EPOCHS)
     end_time = datetime.now() - start_time
     mean_time += end_time.total_seconds()
 
