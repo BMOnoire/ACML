@@ -9,12 +9,14 @@ INPUT_LAYER = 8
 HIDDEN_LAYER = 3
 OUTPUT_LAYER = 8
 EPOCHS = 5000
-DATASET = np.identity(8)
-print(DATASET)
-LABEL = DATASET
 
-test = LABEL[:,3:4] # take already the column instead of transposing it
-print(test)
+np.random.seed(1)
+
+DATASET = np.identity(8)
+LABEL = DATASET
+TEST = LABEL[:, 3:4]  # take already the column instead of transposing it
+LEARNING_RATE = [0.01, 0.05, 0.1, 0.5, 1, 1.5, 2, 2.5, 3, 5, 10]
+
 
 class NN:
 
@@ -22,53 +24,56 @@ class NN:
         self.input_size  = n_inputs
         self.hidden_size = n_hidden
         self.output_size = n_outputs
-        self.W1  = np.random.randn(n_hidden, n_inputs)
-        self.W2  = np.random.randn(n_outputs, n_hidden)
-        self.B1    = np.random.randn(n_hidden, 1)/10
-        self.B2     = np.random.randn(n_outputs, 1)/10
+        self.W1 = None
+        self.W2 = None
+        self.B1 = None
+        self.B2 = None
         self.A1 = None
         self.A2 = None
 
 
+    def init_random_nn(self):
+        W1 = np.random.randn(self.hidden_size, self.input_size) * (0.01)
+        W2 = np.random.randn(self.output_size, self.hidden_size) * (0.01)
+        B1 = np.random.randn(self.hidden_size, 1) * (0.01)
+        B2 = np.random.randn(self.output_size, 1) * (0.01)
+        return W1, W2, B1, B2
+
+
+    def add_weight_and_biases(self, W1, W2, B1, B2):
+        self.W1 = W1
+        self.W2 = W2
+        self.B1 = B1
+        self.B2 = B2
+
+
     def __sigmoid(self, z):
-        return expit(z)
-        # return 1.0 / (1.0 + np.exp(-z))
+        return expit(z) # 1.0 / (1.0 + np.exp(-z))
 
 
     def __derivative_sigmoid(self, z):
         return self.__sigmoid(z) * (1-self.__sigmoid(z))
 
 
-    def __relu(self, z):
-        return max(z, 0)
-
-
-    def __derivate_relu(self, z):
-        return 1 if z > 0 else 0
-
-
     def __forward_propagation(self, input):
         Z1 = np.dot(self.W1, input) + self.B1
         self.A1 = self.__sigmoid(Z1)
-        # sigm( (W2 * A1) + B2 ) = A2
         Z2 = np.dot(self.W2, self.A1) + self.B2
         self.A2 = self.__sigmoid(Z2)
         return self.A2
 
-    def __cost_function(self, Y_expected):
-        mean_cost = 0
-        diff_vec_Y = (self.A2 - Y_expected).T
-        for val_d in diff_vec_Y:
-            cost = 0
-            for val in val_d:
-                cost += val**2
-            mean_cost += 0.5*cost
-        return (1/8) * mean_cost
+
+    def __cost_function(self, Y):
+        m = Y.shape[1]
+        cost_sum = np.multiply(np.log(self.A2), Y) + np.multiply((1 - Y), np.log(1 - self.A2))
+        cost = - np.sum(cost_sum) / m
+        return cost
+
 
     def __back_propagation(self, X, Y, learning_rate):
         #(dataset, output, 1)
         m = X.shape[1]
-        # Backward propagation: calculate dW1, db1, dW2, db2.
+
         d_Z2 = self.A2 - Y
         d_Z1 = np.multiply(np.dot(self.W2.T, d_Z2), 1 - np.power(self.A1, 2))
 
@@ -85,44 +90,64 @@ class NN:
         self.B2 = self.B2 - learning_rate * d_B2
 
 
-    def train(self, dataset, label, epochs):
-        costs = []
+    def train(self, dataset, label, epochs, learning_rate):
+        cost_list = []
         for epoch in range(epochs):
             output = self.__forward_propagation(dataset)
             cost = self.__cost_function(label)
-            costs.append([epoch,cost])
-            asd = self.__back_propagation(dataset, label, 0.1)
-        # # costs.np.array(costs)
-        # plt.plot(costs[:, 1], costs[:, 0])
-        self.test_prediction(test)
-        plt.scatter(*zip(*costs))
+            cost_list.append([epoch,cost])
+            asd = self.__back_propagation(dataset, label, learning_rate)
+
+        return cost_list
+
+
+    def plot_cost_graph(self, value_list, name_list):
+        for value in value_list:
+            plt.plot(*zip(*value))
         plt.ylabel("cost")
         plt.xlabel("epoch")
+        plt.legend(name_list, loc='upper right')
         plt.show()
 
-    def test_prediction(self,x):
-        print("the input for the test is:",x)
+
+    def test_prediction(self, x):
+
         Z1 = np.dot(self.W1, x) + self.B1
         self.A1 = self.__sigmoid(Z1)
-        # sigm( (W2 * A1) + B2 ) = A2
         Z2 = np.dot(self.W2, self.A1) + self.B2
         output = self.__sigmoid(Z2)
-        print("the output is",np.round(output,3))
-        return self.A2
+        return output
 
 
 def main():
     neural_network = NN(INPUT_LAYER, HIDDEN_LAYER, OUTPUT_LAYER)
 
+    W1, W2, B1, B2 = neural_network.init_random_nn()
     mean_time = 0
-    start_time = datetime.now()
-    print("start NN training with",EPOCHS, "epochs")
-    neural_network.train(DATASET, LABEL, EPOCHS)
-    end_time = datetime.now() - start_time
-    mean_time += end_time.total_seconds()
-    print("training completed in", round(mean_time,4))
+    cost_plot_list = []
 
-    #print("Time spent: " + str(mean_time/10))
+    print("\nThe input for the test is:")
+    print(TEST)
+
+    for learning_rate in LEARNING_RATE:
+        #W1, W2, B1, B2 = neural_network.init_random_nn()
+        neural_network.add_weight_and_biases(W1, W2, B1, B2)
+
+        start_time = datetime.now()
+        cost_list = neural_network.train(DATASET, LABEL, EPOCHS, learning_rate)
+        end_time = datetime.now() - start_time
+
+        test_output = neural_network.test_prediction(TEST)
+        print("\nThe output with learning rate " + str(learning_rate) + " is:")
+        print(np.round(test_output, 3))
+
+        cost_plot_list.append(cost_list)
+        mean_time += end_time.total_seconds()
+
+    print("\nTrained NN with", EPOCHS, "epochs")
+    print("\nTraining completed in", round(mean_time/len(LEARNING_RATE),4)) # is the average of all the trainings with different LEARNING_RATE
+
+    neural_network.plot_cost_graph(cost_plot_list, LEARNING_RATE)
 
 
 if __name__ == '__main__':
