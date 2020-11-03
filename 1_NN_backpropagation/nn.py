@@ -15,7 +15,7 @@ np.random.seed(1)
 DATASET = np.identity(8)
 LABEL = DATASET
 TEST = LABEL[:, 3:4]  # take already the column instead of transposing it
-LEARNING_RATE = [0.01, 0.05, 0.1, 0.5, 1, 1.5, 2, 2.5, 3, 5, 10]
+LEARNING_RATE = [0.01, 0.05, 0.1, 0.5, 1, 2, 3, 5, 10]
 
 
 class NN:

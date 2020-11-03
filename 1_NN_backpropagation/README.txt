@@ -1,4 +1,7 @@
-To launch the project just install numpy and scipy:
+To launch the project just install:
 
 	pip install numpy
 	pip install scipy
+	pip install matplotlib
+
+Then launch nn.py
