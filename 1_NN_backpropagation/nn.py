@@ -10,6 +10,9 @@ HIDDEN_LAYER = 3
 OUTPUT_LAYER = 8
 EPOCHS = 50000
 
+#set the seed
+np.random.seed(2)
+
 DATASET = np.identity(8)
 LABEL = DATASET
 TEST = LABEL[:, 3:4]  # take already the column instead of transposing it
@@ -17,7 +20,7 @@ LEARNING_RATE = [0.01, 0.05, 0.1, 0.5, 1, 2, 3, 5, 10]
 
 
 class NN:
-    
+
     def __init__(self, n_inputs, n_hidden, n_outputs):
         self.input_size  = n_inputs
         self.hidden_size = n_hidden
