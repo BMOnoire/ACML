@@ -8,9 +8,7 @@ import matplotlib.pyplot as plt
 INPUT_LAYER = 8
 HIDDEN_LAYER = 3
 OUTPUT_LAYER = 8
-EPOCHS = 5000
-
-np.random.seed(1)
+EPOCHS = 50000
 
 DATASET = np.identity(8)
 LABEL = DATASET
@@ -19,7 +17,7 @@ LEARNING_RATE = [0.01, 0.05, 0.1, 0.5, 1, 2, 3, 5, 10]
 
 
 class NN:
-
+    
     def __init__(self, n_inputs, n_hidden, n_outputs):
         self.input_size  = n_inputs
         self.hidden_size = n_hidden
@@ -31,7 +29,7 @@ class NN:
         self.A1 = None
         self.A2 = None
 
-
+    """initialize the parameters for the NN"""
     def init_random_nn(self):
         W1 = np.random.randn(self.hidden_size, self.input_size) * (0.01)
         W2 = np.random.randn(self.output_size, self.hidden_size) * (0.01)
@@ -60,7 +58,6 @@ class NN:
         self.A1 = self.__sigmoid(Z1)
         Z2 = np.dot(self.W2, self.A1) + self.B2
         self.A2 = self.__sigmoid(Z2)
-        return self.A2
 
 
     def __cost_function(self, Y):
@@ -71,7 +68,6 @@ class NN:
 
 
     def __back_propagation(self, X, Y, learning_rate):
-        #(dataset, output, 1)
         m = X.shape[1]
 
         d_Z2 = self.A2 - Y
@@ -83,24 +79,24 @@ class NN:
         d_W2 = (1 / m) * np.dot(d_Z2, self.A1.T)
         d_W1 = (1 / m) * np.dot(d_Z1, X.T)
 
-        # Updating the parameters according to algorithm
+        # Updating the parameters according to the algorithm
         self.W1 = self.W1 - learning_rate * d_W1
         self.B1 = self.B1 - learning_rate * d_B1
         self.W2 = self.W2 - learning_rate * d_W2
         self.B2 = self.B2 - learning_rate * d_B2
 
-
     def train(self, dataset, label, epochs, learning_rate):
+        #array to save the costs to be plotted
         cost_list = []
         for epoch in range(epochs):
-            output = self.__forward_propagation(dataset)
+            self.__forward_propagation(dataset)
             cost = self.__cost_function(label)
             cost_list.append([epoch,cost])
-            asd = self.__back_propagation(dataset, label, learning_rate)
+            self.__back_propagation(dataset, label, learning_rate)
 
         return cost_list
 
-
+    #plot the array cost_list with the epochs
     def plot_cost_graph(self, value_list, name_list):
         for value in value_list:
             plt.plot(*zip(*value))
@@ -109,7 +105,7 @@ class NN:
         plt.legend(name_list, loc='upper right')
         plt.show()
 
-
+    #perform the prediction of an input node to show the actual predicted results
     def test_prediction(self, x):
 
         Z1 = np.dot(self.W1, x) + self.B1
@@ -129,8 +125,8 @@ def main():
     print("\nThe input for the test is:")
     print(TEST)
 
+    #perform the training for every different learnign rate
     for learning_rate in LEARNING_RATE:
-        #W1, W2, B1, B2 = neural_network.init_random_nn()
         neural_network.add_weight_and_biases(W1, W2, B1, B2)
 
         start_time = datetime.now()
