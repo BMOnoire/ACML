@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
 from keras.preprocessing.image import ImageDataGenerator
-from sklearn.metrics import accuracy_score
+#from sklearn.metrics import accuracy_score
 from keras.utils import to_categorical
 
 from tensorflow.keras import datasets, layers, models
@@ -27,16 +27,15 @@ class NN:
         input_shape = self.train_dataset[0].shape
         self.model.add(layers.Conv2D(8, (3, 3), padding="same", activation='relu', input_shape=input_shape))
         self.model.add(layers.MaxPooling2D((2, 2), padding="valid"))
-#
+
         self.model.add(layers.Conv2D(12, (3, 3), padding="same", activation='relu'))
         self.model.add(layers.MaxPooling2D(pool_size=(2, 2), padding="valid"))
-#
-#
-#
+
         self.model.add(layers.Conv2D(16, (3, 3), padding="same", activation='relu'))
+
         self.model.add(layers.UpSampling2D((2, 2), interpolation='bilinear', ))
         self.model.add(layers.Conv2D(12, (3, 3), padding="same", activation='relu'))
-#
+
         self.model.add(layers.UpSampling2D((2, 2), interpolation='bilinear'))
         self.model.add(layers.Conv2D(3, (3, 3), padding="same", activation='relu'))
 

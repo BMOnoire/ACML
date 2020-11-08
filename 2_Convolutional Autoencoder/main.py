@@ -56,31 +56,27 @@ def main():
         dataset = extract_data()
         jn.pickle_save(dataset, pickle_dataset_path)
 
-    print("Extraction and preprocessing time: ", str(time.time() - start))
+    print("\nExtraction and preprocessing time: {:0.3f} sec\n".format(time.time() - start))
 
-    start = time.time()
-    # TODO train
 
     cnn = nn.NN(dataset[0], dataset[1], dataset[2])
-
     cnn.init_convolutional_autoencoder()
 
-    hist,layers = cnn.train_model()
-    for layer in layers:
-        print(layer.input_shape, layer)
+    start = time.time()
+    hist, layers = cnn.train_model()
+    print("\nCNN training time: {:0.3f} sec\n".format(time.time() - start))
+
+    #for layer in layers:
+    #    print(layer.output_shape)
     plot_hist(hist)
     plt.savefig("img/plot_hist.png")
     plt.show()
 
-    history = cnn.test_model()
 
-    #print("Trained cnn -> ", cnn["id"])
-    #print("CNN training time: ", str(time.time() - start))
-    #print("public test acc  -> ", test_accuracy)
-    #print("public test loss -> ", test_loss)
+    test_loss, test_accuracy = cnn.test_model()
+    print("Test Accuracy  -> ", test_accuracy)
+    print("Test Loss -> ", test_loss)
 
-    # launch a list of cnn
-    #cnn.cnn_P(training_data, private_test_data, public_test_data)
 
 if __name__ == '__main__':
     main()
