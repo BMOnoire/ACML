@@ -2,6 +2,7 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 from keras.utils import to_categorical
+import matplotlib.pyplot as plt
 import config as cfg
 import nn
 import time
@@ -25,6 +26,27 @@ def extract_data():
     return (dataset[:int(size * 0.8)], dataset[int(size * 0.8):int(size * 0.9)], dataset[int(size * 0.9):])
 
 
+def plot_hist(history):
+    f, ax = plt.subplots(1, 1) #, figsize=(10, 8))
+    print(history.history)
+
+    #summarize history for accuracy
+    # ax[0].plot(history.history['accuracy'], c='C2')
+    # ax[0].plot(history.history['val_accuracy'], c='C3')
+    # ax[0].set_title('Model accuracy')
+    # ax[0].set_ylabel('Accuracy')
+    # ax[0].set_xlabel('Epoch')
+    # ax[0].legend(['Train', 'Test'], loc='upper left')
+
+    # summarize history for loss
+    ax.plot(history.history['loss'], c='C0')
+    ax.plot(history.history['val_loss'], c='C1')
+    ax.set_title('Model loss')
+    ax.set_ylabel('Loss')
+    ax.set_xlabel('Epoch')
+    ax.legend(['Train', 'Test'], loc='upper left')
+
+
 def main():
     start = time.time()
     pickle_dataset_path = cfg.general["pickle_data_path"] / "dataset.pickle"
@@ -43,7 +65,12 @@ def main():
 
     cnn.init_convolutional_autoencoder()
 
-    cnn.train_model()
+    hist,layers = cnn.train_model()
+    for layer in layers:
+        print(layer.output_shape)
+    plot_hist(hist)
+    plt.savefig("img/plot_hist.png")
+    plt.show()
 
     history = cnn.test_model()
 
