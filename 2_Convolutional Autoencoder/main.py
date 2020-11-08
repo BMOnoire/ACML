@@ -67,7 +67,7 @@ def main():
 
     hist,layers = cnn.train_model()
     for layer in layers:
-        print(layer.output_shape)
+        print(layer.input_shape, layer)
     plot_hist(hist)
     plt.savefig("img/plot_hist.png")
     plt.show()

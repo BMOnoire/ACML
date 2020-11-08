@@ -1,3 +1,4 @@
+from PIL.Image import Image
 from keras import models
 from keras import layers
 import config as cfg
@@ -6,6 +7,7 @@ import janitor as jn
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import accuracy_score
 from keras.utils import to_categorical
@@ -89,12 +91,26 @@ class NN:
 
     def test_model(self ):
 
-        #TODO make it choose 1 image at time
-        # val_datagen = ImageDataGenerator(rescale=1. / 255)
-        # val_generator = val_datagen.flow_from_dataframe(self.test_dataset[:,:])
-        #
-        #
-        # x_test, y_test = val_generator.next()
+        # TODO make it choose 1 image at time
+        i=0
+        f, ax = plt.subplots(1, 10, figsize=(20, 10))
+        while i<10:
+            
+            ax[i].imshow(self.test_dataset[i])
+
+            # img_preprocessed = preprocess_input(self.test_dataset[i])
+            img_batch = np.expand_dims(self.test_dataset[i], axis=0)
+            i += 1
+            prediction = self.model.predict(img_batch)
+            print("prediction",prediction)
+            ax[i].imshow(prediction)
+            i += 1
+
+            # y_pred_conf = self.model.predict(self.test_dataset[i])
+            # y_pred = np.argmax(y_pred_conf, axis=1)
+            # print(y_pred)
+
+
         # y_pred_conf = self.model.predict(x_test)  # return probabilities of each class
         # y_pred = np.argmax(y_pred_conf, axis=1)
         # y_label = np.argmax(y_test, axis=1)
@@ -110,7 +126,7 @@ class NN:
         #                     (str(y_pred[j]), np.max(y_pred_conf[j]),
         #                      str(y_label[j]), y_pred_conf[j][(y_label[j])], fontweight="bold", size=20))
         # plt.savefig("img/pred.png")
-        # plt.show()
+        plt.show()
 
 
 

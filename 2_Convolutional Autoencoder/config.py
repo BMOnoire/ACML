@@ -6,7 +6,7 @@ general = {
 }
 
 nn = {
-    "epochs": 3,
+    "epochs": 10,
     "batch_size": 250,
     "optimizer": "Adam",
     "loss": "mean_squared_error",
