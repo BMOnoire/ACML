@@ -18,6 +18,7 @@ else:
 def extract_data():
     dataset = tf.keras.datasets.cifar10.load_data()
     dataset = np.vstack((dataset[0][0], dataset[1][0]))  # merged train and test set
+    dataset = dataset / 255
     # dataset2 = np.random.shuffle(dataset)
     size = len(dataset)
     # recreate another set of (train, validation, test)
@@ -46,10 +47,10 @@ def main():
 
     history = cnn.test_model()
 
-    print("Trained cnn -> ", cnn["id"])
-    print("CNN training time: ", str(time.time() - start))
-    print("public test acc  -> ", test_accuracy)
-    print("public test loss -> ", test_loss)
+    #print("Trained cnn -> ", cnn["id"])
+    #print("CNN training time: ", str(time.time() - start))
+    #print("public test acc  -> ", test_accuracy)
+    #print("public test loss -> ", test_loss)
 
     # launch a list of cnn
     #cnn.cnn_P(training_data, private_test_data, public_test_data)
