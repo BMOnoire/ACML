@@ -90,46 +90,30 @@ class NN:
         return hist, self.model.layers
 
     def test_model(self ):
+        decoded_imgs = self.model.predict(self.test_dataset)
 
-        # TODO make it choose 1 image at time
-        i=0
-        f, ax = plt.subplots(1, 10, figsize=(20, 10))
-        while i<10:
-            
-            ax[i].imshow(self.test_dataset[i])
+        n = 10
+        plt.figure(figsize=(20, 4))
+        for i in range(1, n + 1):
+            # Display original
+            ax = plt.subplot(2, n, i)
+            plt.imshow(self.test_dataset[i])
+            plt.gray()
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
 
-            # img_preprocessed = preprocess_input(self.test_dataset[i])
-            img_batch = np.expand_dims(self.test_dataset[i], axis=0)
-            i += 1
-            prediction = self.model.predict(img_batch)
-            print("prediction",prediction)
-            ax[i].imshow(prediction)
-            i += 1
-
-            # y_pred_conf = self.model.predict(self.test_dataset[i])
-            # y_pred = np.argmax(y_pred_conf, axis=1)
-            # print(y_pred)
-
-
-        # y_pred_conf = self.model.predict(x_test)  # return probabilities of each class
-        # y_pred = np.argmax(y_pred_conf, axis=1)
-        # y_label = np.argmax(y_test, axis=1)
-        #
-        # print('Accuracy score: {:.1f}%'.format(accuracy_score(y_pred, y_label) * 100))
-        # # print("CNN training time: ", str(time.time() - start))
-        #
-        # ind = np.random.randint(1, len(x_test), 5)
-        # f, ax = plt.subplots(1, 5, figsize=(20, 10))
-        # for i, j in enumerate(ind):
-        #     ax[i].imshow(x_test[j])
-        #     ax[i].set_title("Pred :{}({:.2f})\nTrue :{}({:.2f})".format
-        #                     (str(y_pred[j]), np.max(y_pred_conf[j]),
-        #                      str(y_label[j]), y_pred_conf[j][(y_label[j])], fontweight="bold", size=20))
-        # plt.savefig("img/pred.png")
+            # Display reconstruction
+            ax = plt.subplot(2, n, i + n)
+            plt.imshow(decoded_imgs[i])
+            plt.gray()
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+        plt.savefig("img/pred.png")
         plt.show()
 
+        # ax[i].set_title
 
-
+        plt.show()
 
         return self.model.evaluate(
             self.test_dataset,
