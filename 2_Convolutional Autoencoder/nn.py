@@ -21,8 +21,8 @@ class NN:
         self.test_dataset       = test
         self.model = None
 
-    def init_convolutional_autoencoder(self):
 
+    def init_standard_convolutional_autoencoder(self):
         self.model = models.Sequential()
         input_shape = self.train_dataset[0].shape
         self.model.add(layers.Conv2D(8, (3, 3), padding="same", activation='relu', input_shape=input_shape))
@@ -39,34 +39,26 @@ class NN:
         self.model.add(layers.UpSampling2D((2, 2), interpolation='bilinear'))
         self.model.add(layers.Conv2D(3, (3, 3), padding="same", activation='relu'))
 
-        #self.model.add(layers.Conv2D(8, (2, 2), activation='relu', kernel_initializer='he_uniform', padding='same',
-        #                 input_shape=input_shape))
-        #self.model.add(layers.MaxPooling2D((2, 2), padding='same'))
-        #self.model.add(layers.Conv2D(8, (2, 2), activation='relu', kernel_initializer='he_uniform', padding='same'))
-        #self.model.add(layers.MaxPooling2D((2, 2), padding='same'))
-        #self.model.add(layers.Conv2D(8, (2, 2), strides=(2, 2), activation='relu', kernel_initializer='he_uniform', padding='same'))
-        #self.model.add(layers.Conv2D(8, (2, 2), activation='relu', kernel_initializer='he_uniform', padding='same'))
-        #self.model.add(layers.UpSampling2D((2, 2), interpolation='bilinear'))
-        #self.model.add(layers.Conv2D(8, (2, 2), activation='relu'))
-        #self.model.add(layers.UpSampling2D((2, 2), interpolation='bilinear'))
-        #self.model.add(layers.Conv2D(8, (2, 2), activation='relu', kernel_initializer='he_uniform', padding='same'))
-        #self.model.add(layers.UpSampling2D((2, 2), interpolation='bilinear'))
-        #self.model.add(layers.Conv2D(1, (2, 2), activation='sigmoid', padding='same'))
+        self.model.summary()
 
-        #self.model.add(layers.AveragePooling2D(pool_size=(3, 3), strides=(2, 2)))
-        #self.model.add(layers.Conv2D(256, (3, 3), padding="same", activation='relu'))
-        #self.model.add(layers.AveragePooling2D(pool_size=(3, 3), strides=(2, 2)))
-        #self.model.add(layers.Flatten())
-#
-        #self.model.add(layers.Dense(512, activation='relu'))
-        #self.model.add(layers.Dropout(0.5))
-        #self.model.add(layers.Dense(512, activation='relu'))
-        #self.model.add(layers.Dropout(0.5))
-        ## model.add(layers.Dense(2048, activation='relu'))
-        ## model.add(layers.Dropout(0.2))
-        #self.model.add(layers.Dense(7, activation='softmax'))
-#
-        #self.model.add(layers.Conv2D(32, (3, 3), padding="same", activation='relu', ))
+
+    def init_smart_convolutional_autoencoder(self):
+        self.model = models.Sequential()
+        input_shape = self.train_dataset[0].shape
+        self.model.add(layers.Conv2D(8, (3, 3), padding="same", activation='relu', input_shape=input_shape))
+        self.model.add(layers.MaxPooling2D((2, 2), padding="valid"))
+
+        self.model.add(layers.Conv2D(16, (5, 5), padding="same", activation='relu'))
+        self.model.add(layers.Conv2D(32, (3, 3), padding="same", activation='relu'))
+        self.model.add(layers.MaxPooling2D(pool_size=(2, 2), padding="valid"))
+
+        self.model.add(layers.Conv2D(64, (3, 3), padding="same", activation='relu'))
+
+        self.model.add(layers.UpSampling2D((2, 2), interpolation='bilinear', ))
+        self.model.add(layers.Conv2DTranspose(32, (3, 3), padding="same", activation='relu'))
+
+        self.model.add(layers.UpSampling2D((2, 2), interpolation='bilinear'))
+        self.model.add(layers.Conv2DTranspose(3, (3, 3), padding="same", activation='relu'))
 
         self.model.summary()
 
@@ -88,32 +80,12 @@ class NN:
                 )
         return hist, self.model.layers
 
-    def test_model(self ):
-        decoded_imgs = self.model.predict(self.test_dataset)
 
-        n = 10
-        plt.figure(figsize=(20, 4))
-        for i in range(1, n + 1):
-            # Display original
-            ax = plt.subplot(2, n, i)
-            plt.imshow(self.test_dataset[i])
-            plt.gray()
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
+    def predict_output(self, input):
+        return self.model.predict(input)
 
-            # Display reconstruction
-            ax = plt.subplot(2, n, i + n)
-            plt.imshow(decoded_imgs[i])
-            plt.gray()
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-        plt.savefig("img/pred.png")
-        plt.show()
 
-        # ax[i].set_title
-
-        plt.show()
-
+    def evaluate_model(self ):
         return self.model.evaluate(
             self.test_dataset,
             self.test_dataset
