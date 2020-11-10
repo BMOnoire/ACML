@@ -7,8 +7,8 @@ general = {
 }
 
 nn = {
-    "epochs": 500,
-    "batch_size": 50,
+    "epochs": 10,
+    "batch_size": 500,
     "optimizer": "Adam",
     "loss": "mean_squared_error",
     "metrics": ["accuracy"]
