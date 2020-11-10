@@ -40,7 +40,7 @@ def extract_data():
     ]
 
 
-def plot_hist(history):
+def plot_hist(history, img_name):
     f, ax = plt.subplots(1, 1) #, figsize=(10, 8))
     print(history.history)
 
@@ -59,15 +59,15 @@ def plot_hist(history):
     ax.set_ylabel('Loss')
     ax.set_xlabel('Epoch')
     ax.legend(['Train', 'Test'], loc='upper left')
-    plt.savefig(str(cfg.general["imgs_path"] / "plot_hist.png"))
-    plt.show()
+    plt.savefig(str(cfg.general["imgs_path"] / img_name))
+    #plt.show()
 
 
-def plot_images_resulting(cnn, dataset):
+def plot_images_resulting(cnn, dataset, img_name):
     predicted_dataset = cnn.predict_output(dataset)
 
-    n = 10
-    plt.figure(figsize=(20, 4))
+    n = 5
+    plt.figure(figsize=(32, 4))
     for i in range(1, n + 1):
         # Display original
         ax = plt.subplot(2, n, i)
@@ -82,15 +82,15 @@ def plot_images_resulting(cnn, dataset):
         plt.gray()
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
-    plt.savefig(str(cfg.general["imgs_path"] / "pred.png"))
-    plt.show()
-
-    # ax[i].set_title
+    plt.savefig(str(cfg.general["imgs_path"] / img_name))
+    #plt.show()
 
 
 def main():
-    start = time.time()
     jn.create_dir(cfg.general["imgs_path"])
+    jn.create_dir(cfg.general["models_path"])
+
+    start = time.time()
     pickle_dataset_path = cfg.general["pickle_path"] / "dataset.pickle"
     dataset_list = jn.pickle_load(pickle_dataset_path)
     if not dataset_list:
@@ -109,11 +109,14 @@ def main():
     cnn_standard.init_standard_convolutional_autoencoder()
 
     start = time.time()
-    hist_standard, layers_standard = cnn_standard.train_model()
+    hist_standard, layers_standard = cnn_standard.train_model(str(cfg.general["models_path"] / "standard_model.h5"))
     print("\nCNN standard training time: {:0.3f} sec\n".format(time.time() - start))
 
-    plot_hist(hist_standard)
-    plot_images_resulting(cnn_standard, train_dataset)
+    plot_hist(hist_standard, "lost_standard.png")
+    plot_images_resulting(cnn_standard, test_dataset, "confront_standard.png")
+
+    hist_standard_path = cfg.general["pickle_path"] / "hist_standard.pickle"
+    jn.pickle_save(hist_standard.history, hist_standard_path)
 
     test_loss_standard, test_accuracy_standard = cnn_standard.evaluate_model()
     print("Test Accuracy standard -> ", test_loss_standard)
@@ -125,11 +128,14 @@ def main():
     cnn_smart.init_smart_convolutional_autoencoder()
 
     start = time.time()
-    hist_smart, layers_smart = cnn_smart.train_model()
+    hist_smart, layers_smart = cnn_smart.train_model(str(cfg.general["models_path"] / "smart_model.h5"))
     print("\nCNN smart training time: {:0.3f} sec\n".format(time.time() - start))
 
-    plot_hist(hist_smart)
-    plot_images_resulting(cnn_smart, train_dataset)
+    plot_hist(hist_smart, "lost_smart.png")
+    plot_images_resulting(cnn_smart, test_dataset, "confront_smart.png")
+
+    hist_smart_path = cfg.general["pickle_path"] / "hist_smart.pickle"
+    jn.pickle_save(hist_smart.history, hist_smart_path)
 
     test_loss_smart, test_accuracy_smart = cnn_smart.evaluate_model()
     print("Test Accuracy smart -> ", test_loss_smart)
@@ -137,7 +143,19 @@ def main():
     ####################################################################################################################
 
     ####################################################################################################################
-    # TODO gray
+    #cnn_gray = nn.NN(train_dataset, evaluation_dataset, test_dataset)
+    #cnn_gray.init_gray_convolutional_autoencoder()
+#
+    #start = time.time()
+    #hist_gray, layers_gray = cnn_gray.train_model()
+    #print("\nCNN gray training time: {:0.3f} sec\n".format(time.time() - start))
+#
+    #plot_hist(hist_gray)
+    #plot_images_resulting(cnn_gray, train_dataset)
+#
+    #test_loss_gray, test_accuracy_gray = cnn_gray.evaluate_model()
+    #print("Test Accuracy gray -> ", test_loss_gray)
+    #print("Test Loss gray -> ", test_accuracy_gray)
     ####################################################################################################################
 
 

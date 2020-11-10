@@ -40,6 +40,11 @@ class NN:
         self.model.add(layers.Conv2D(3, (3, 3), padding="same", activation='relu'))
 
         self.model.summary()
+        self.model.compile(
+            optimizer=cfg.nn["optimizer"],
+            loss=cfg.nn["loss"],
+            metrics=cfg.nn["metrics"]
+        )
 
 
     def init_smart_convolutional_autoencoder(self):
@@ -61,15 +66,15 @@ class NN:
         self.model.add(layers.Conv2DTranspose(3, (3, 3), padding="same", activation='relu'))
 
         self.model.summary()
-
-
-    def train_model(self):
-        # launch cnn
         self.model.compile(
             optimizer=cfg.nn["optimizer"],
             loss=cfg.nn["loss"],
             metrics=cfg.nn["metrics"]
         )
+
+
+    def train_model(self, saving_path):
+        # launch cnn
 
         hist = self.model.fit(
                         self.train_dataset,
@@ -78,6 +83,14 @@ class NN:
                         epochs=cfg.nn["epochs"],
                         validation_data=(self.evaluation_dataset, self.evaluation_dataset)
                 )
+
+        # Calling `save('my_model.h5')` creates a h5 file `my_model.h5`.
+        if saving_path:
+            self.model.save(saving_path)
+
+            # It can be used to reconstruct the model identically.
+            #reconstructed_model = keras.models.load_model("my_h5_model.h5")
+
         return hist, self.model.layers
 
 
