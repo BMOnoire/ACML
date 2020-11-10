@@ -12,8 +12,8 @@ import time
 import janitor as jn
 import cv2
 
-TEST_STANDARD = False
-TEST_SMART = False
+TEST_STANDARD = True
+TEST_SMART = True
 TEST_COLORIZER = True
 
 # just to check if GPU is working
@@ -46,17 +46,22 @@ def extract_data():
     ]
 
 
-def plot_hist(history, img_name):
-    f, ax = plt.subplots(1, 1) #, figsize=(10, 8))
-    print(history.history)
+def plot_hist_accuracy(history, img_name):
+    f, ax = plt.subplots(1, 1)
 
-    #summarize history for accuracy
-    # ax[0].plot(history.history['accuracy'], c='C2')
-    # ax[0].plot(history.history['val_accuracy'], c='C3')
-    # ax[0].set_title('Model accuracy')
-    # ax[0].set_ylabel('Accuracy')
-    # ax[0].set_xlabel('Epoch')
-    # ax[0].legend(['Train', 'Test'], loc='upper left')
+    # summarize history for accuracy
+    ax.plot(history.history['accuracy'], c='C0')
+    ax.plot(history.history['val_accuracy'], c='C1')
+    ax.set_title('Model accuracy')
+    ax.set_ylabel('Accuracy')
+    ax.set_xlabel('Epoch')
+    ax.legend(['Train', 'Test'], loc='upper left')
+    plt.savefig(str(cfg.general["imgs_path"] / img_name))
+    plt.show()
+
+
+def plot_hist_loss(history, img_name):
+    f, ax = plt.subplots(1, 1)
 
     # summarize history for loss
     ax.plot(history.history['loss'], c='C0')
@@ -192,7 +197,9 @@ def main():
         hist_standard, layers_standard = cnn_standard.train_model(str(cfg.general["models_path"] / "standard_model.h5"))
         print("\nCNN standard training time: {:0.3f} sec\n".format(time.time() - start))
 
-        plot_hist(hist_standard, "lost_standard.png")
+
+        plot_hist_accuracy(hist_standard, "accuracy_standard.png")
+        plot_hist_loss(hist_standard, "loss_standard.png")
         plot_images_resulting(cnn_standard, test_dataset, "confront_standard.png")
 
         hist_standard_path = cfg.general["pickle_path"] / "hist_standard.pickle"
@@ -213,7 +220,8 @@ def main():
         hist_smart, layers_smart = cnn_smart.train_model(str(cfg.general["models_path"] / "smart_model.h5"))
         print("\nCNN smart training time: {:0.3f} sec\n".format(time.time() - start))
 
-        plot_hist(hist_smart, "lost_smart.png")
+        plot_hist_accuracy(hist_smart, "accuracy_smart.png")
+        plot_hist_loss(hist_smart, "loss_smart.png")
         plot_images_resulting(cnn_smart, test_dataset, "confront_smart.png")
 
         hist_smart_path = cfg.general["pickle_path"] / "hist_smart.pickle"
@@ -238,7 +246,8 @@ def main():
         hist_colorizer, layers_colorizer = cnn_colorizer.train_model(str(cfg.general["models_path"] / "colorizer_model.h5"))
         print("\nCNN colorizer training time: {:0.3f} sec\n".format(time.time() - start))
 
-        plot_hist(hist_colorizer, "lost_colorizer.png")
+        plot_hist_accuracy(hist_colorizer, "accuracy_colorizer.png")
+        plot_hist_loss(hist_colorizer, "loss_colorizer.png")
         plot_colorized_images_resulting(cnn_colorizer, test_dataset, "confront_colorizer.png")
 
         hist_colorizer_path = cfg.general["pickle_path"] / "hist_colorizer.pickle"
@@ -250,6 +259,6 @@ def main():
     ####################################################################################################################
 
 
-
+ 
 if __name__ == '__main__':
     main()
