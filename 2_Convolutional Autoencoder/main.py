@@ -2,9 +2,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # lighter system log
 
 import tensorflow as tf
-import pandas as pd
 import numpy as np
-from keras.utils import to_categorical
 import matplotlib.pyplot as plt
 import config as cfg
 import nn
@@ -26,9 +24,6 @@ else:
 def extract_data():
     dataset_rgb = tf.keras.datasets.cifar10.load_data()
     dataset_rgb = np.vstack((dataset_rgb[0][0], dataset_rgb[1][0]))  # merged train and test set
-
-    #dataset_grayscale = np.dot(dataset_rgb[..., :3], [0.2989, 0.5870, 0.1140]) # https://e2eml.school/convert_rgb_to_grayscale.html
-    #dataset_grayscale = np.around(dataset_grayscale) # better round numbers
 
     dataset_yuv = np.array([ cv2.cvtColor(img, cv2.COLOR_RGB2YUV) for img in dataset_rgb])
 
@@ -82,10 +77,8 @@ def plot_images_resulting(cnn, dataset, img_name):
 
     index = [2, 3, 5, 6]
     # reconstruct image
-    img = np.float32(dataset[0])# np.around(dataset[0]*255)
-    #img = np.float32(img)
-    pred_img = predicted_dataset[0]#np.around(predicted_dataset[0]*255)
-    #pred_img = np.float32(pred_img)
+    img = np.float32(dataset[0])
+    pred_img = predicted_dataset[0]
 
     image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     predicted_image = cv2.cvtColor(pred_img, cv2.COLOR_BGR2RGB)
@@ -141,7 +134,7 @@ def plot_colorized_images_resulting(cnn, dataset, img_name):
     index = [2, 3, 5, 6]
 
     # reconstruct image
-    img = np.float32(dataset[0])# np.around(dataset[0]*255)
+    img = np.float32(dataset[0])
 
     y = np.squeeze(np.float32(dataset_y[0]))
     u, v = cv2.split(predicted_uv[0])
@@ -153,7 +146,7 @@ def plot_colorized_images_resulting(cnn, dataset, img_name):
     result = np.vstack([np.hstack([image, predicted_image])])
 
     for i in index:
-        img = np.float32(dataset[i])  # np.around(dataset[0]*255)
+        img = np.float32(dataset[i])
 
         y = np.squeeze(np.float32(dataset_y[i]))
         u, v = cv2.split(predicted_uv[i])

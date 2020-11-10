@@ -1,17 +1,7 @@
-from PIL.Image import Image
 from keras import models
 from keras import layers
 import config as cfg
-import time
-import janitor as jn
-import tensorflow as tf
-import numpy as np
-import matplotlib.pyplot as plt
-from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
-from keras.preprocessing.image import ImageDataGenerator
-from keras.utils import to_categorical
-
-from tensorflow.keras import datasets, layers, models
+from tensorflow.keras import layers, models
 
 class NN:
     def __init__(self, train, evaluation, test):
@@ -115,8 +105,8 @@ class NN:
         if saving_path:
             self.model.save(saving_path)
 
-            # It can be used to reconstruct the model identically.
-            #reconstructed_model = keras.models.load_model("my_h5_model.h5")
+        # It can be used to reconstruct the model identically.
+        #reconstructed_model = keras.models.load_model("my_h5_model.h5")
 
         return hist, self.model.layers
 
