@@ -185,10 +185,10 @@ def main():
 
     dataset_rgb, dataset_rgb_norm, dataset_yuv, dataset_yuv_norm = dataset_list
 
-
+    train_dataset, evaluation_dataset, test_dataset = dataset_rgb_norm[0], dataset_rgb_norm[1], dataset_rgb_norm[2]
     ####################################################################################################################
     if TEST_STANDARD:
-        train_dataset, evaluation_dataset, test_dataset = dataset_rgb_norm[0], dataset_rgb_norm[1], dataset_rgb_norm[2]
+
 
         cnn_standard = nn.NN((train_dataset, train_dataset), (evaluation_dataset, evaluation_dataset), (test_dataset, test_dataset))
         cnn_standard.init_standard_convolutional_autoencoder()
