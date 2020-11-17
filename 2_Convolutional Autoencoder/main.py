@@ -43,8 +43,6 @@ def extract_data():
 
 def plot_hist_accuracy(history, img_name):
     f, ax = plt.subplots(1, 1)
-
-    # summarize history for accuracy
     ax.plot(history.history['accuracy'], c='C0')
     ax.plot(history.history['val_accuracy'], c='C1')
     ax.set_title('Model accuracy')
@@ -52,13 +50,11 @@ def plot_hist_accuracy(history, img_name):
     ax.set_xlabel('Epoch')
     ax.legend(['Train', 'Test'], loc='upper left')
     plt.savefig(str(cfg.general["imgs_path"] / img_name))
-    plt.show()
+    #plt.show()
 
 
 def plot_hist_loss(history, img_name):
     f, ax = plt.subplots(1, 1)
-
-    # summarize history for loss
     ax.plot(history.history['loss'], c='C0')
     ax.plot(history.history['val_loss'], c='C1')
     ax.set_title('Model loss')
@@ -66,32 +62,35 @@ def plot_hist_loss(history, img_name):
     ax.set_xlabel('Epoch')
     ax.legend(['Train', 'Test'], loc='upper left')
     plt.savefig(str(cfg.general["imgs_path"] / img_name))
-    plt.show()
+    #plt.show()
 
 
-def plot_images_resulting(cnn, dataset, img_name):
-    predicted_dataset = cnn.predict_output(dataset)
-
+def plot_images_resulting(real_img_set, predicted_img_set, filter, saving_name, index_list=None):
     cv2.namedWindow('image', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('image', 1600, 1600)
 
-    index = [2, 3, 5, 6]
-    # reconstruct image
-    img = np.float32(dataset[0])
-    pred_img = predicted_dataset[0]
+    if not index_list:
+        index_list = range(5)
 
-    image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    predicted_image = cv2.cvtColor(pred_img, cv2.COLOR_BGR2RGB)
+    # avoid stupid crashes
+    real_img_set = np.float32(real_img_set)
+    predicted_img_set = np.float32(predicted_img_set)
 
-    result = np.vstack([np.hstack([image, predicted_image])])
+    # add a small border for initialization
+    result_w = real_img_set[0].shape[1] + predicted_img_set[0].shape[1]
+    result = np.zeros((1, result_w, real_img_set[0].shape[2]))
 
-    for i in index:
-        img = np.float32(dataset[i])
-        pred_img = predicted_dataset[i]
-        image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        predicted_image = cv2.cvtColor(pred_img, cv2.COLOR_BGR2RGB)
-        result = np.vstack([result, np.hstack([image, predicted_image])])
 
+    for i in index_list:
+        # reconstruct image
+        real_img = np.float32(real_img_set[i])
+        pred_img = np.float32(predicted_img_set[i])
+
+        real_image = cv2.cvtColor(real_img, filter)
+        predicted_image = cv2.cvtColor(pred_img, filter)
+
+        result = np.vstack([result, np.hstack([real_image, predicted_image])])
+    ###
 
     cv2.imshow('image', result)
     cv2.waitKey(0)
@@ -122,44 +121,6 @@ def plot_images_resulting(cnn, dataset, img_name):
     #plt.savefig(str(cfg.general["imgs_path"] / img_name))
     #plt.show()
 
-
-def plot_colorized_images_resulting(cnn, dataset, img_name):
-    dataset_y = np.expand_dims(dataset[:, :, :, 0], axis=3)
-    predicted_uv = cnn.predict_output(dataset_y)
-
-
-    cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('image', 1600, 1600)
-
-    index = [2, 3, 5, 6]
-
-    # reconstruct image
-    img = np.float32(dataset[0])
-
-    y = np.squeeze(np.float32(dataset_y[0]))
-    u, v = cv2.split(predicted_uv[0])
-    pred_img = cv2.merge((y, u, v))
-
-    image = cv2.cvtColor(img, cv2.COLOR_YUV2BGR)
-    predicted_image = cv2.cvtColor(pred_img, cv2.COLOR_YUV2BGR)
-
-    result = np.vstack([np.hstack([image, predicted_image])])
-
-    for i in index:
-        img = np.float32(dataset[i])
-
-        y = np.squeeze(np.float32(dataset_y[i]))
-        u, v = cv2.split(predicted_uv[i])
-        pred_img = cv2.merge((y, u, v))
-
-        image = cv2.cvtColor(img, cv2.COLOR_YUV2BGR)
-        predicted_image = cv2.cvtColor(pred_img, cv2.COLOR_YUV2BGR)
-        result = np.vstack([result, np.hstack([image, predicted_image])])
-
-
-    cv2.imshow('image', result)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
 
 def main():
@@ -193,7 +154,8 @@ def main():
 
         plot_hist_accuracy(hist_standard, "accuracy_standard.png")
         plot_hist_loss(hist_standard, "loss_standard.png")
-        plot_images_resulting(cnn_standard, test_dataset, "confront_standard.png")
+        predicted_dataset = cnn_standard.predict_output(test_dataset)
+        plot_images_resulting(test_dataset, predicted_dataset, cv2.COLOR_BGR2RGB, "confront_standard.png", cfg.general["images_list"])
 
         hist_standard_path = cfg.general["pickle_path"] / "hist_standard.pickle"
         jn.pickle_save(hist_standard.history, hist_standard_path)
@@ -215,7 +177,8 @@ def main():
 
         plot_hist_accuracy(hist_smart, "accuracy_smart.png")
         plot_hist_loss(hist_smart, "loss_smart.png")
-        plot_images_resulting(cnn_smart, test_dataset, "confront_smart.png")
+        predicted_dataset = cnn_smart.predict_output(test_dataset)
+        plot_images_resulting(test_dataset, predicted_dataset, cv2.COLOR_BGR2RGB, "confront_smart.png", cfg.general["images_list"])
 
         hist_smart_path = cfg.general["pickle_path"] / "hist_smart.pickle"
         jn.pickle_save(hist_smart.history, hist_smart_path)
@@ -241,7 +204,20 @@ def main():
 
         plot_hist_accuracy(hist_colorizer, "accuracy_colorizer.png")
         plot_hist_loss(hist_colorizer, "loss_colorizer.png")
-        plot_colorized_images_resulting(cnn_colorizer, test_dataset, "confront_colorizer.png")
+
+        dataset_real_y = np.expand_dims(test_dataset[:, :, :, 0], axis=3)
+        dataset_predicted_uv = cnn_colorizer.predict_output(dataset_real_y)
+
+        def predict_YUV_images(Y_list, UV_list):
+            U_list = np.expand_dims(UV_list[:, :, :, 0], axis=3)
+            V_list = np.expand_dims(UV_list[:, :, :, 1], axis=3)
+            return np.concatenate((Y_list, U_list, V_list), axis=3) #np.dstack((u, u, v))
+            #pred_img = cv2.merge((y, u, v))
+
+
+        predicted_dataset = predict_YUV_images(dataset_real_y, dataset_predicted_uv)
+
+        plot_images_resulting(test_dataset, predicted_dataset, cv2.COLOR_YUV2BGR, "confront_colorized.png", cfg.general["images_list"])
 
         hist_colorizer_path = cfg.general["pickle_path"] / "hist_colorizer.pickle"
         jn.pickle_save(hist_colorizer.history, hist_colorizer_path)
