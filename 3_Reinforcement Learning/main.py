@@ -7,9 +7,6 @@ import time
 import config as cfg
 import janitor as jn
 
-#TODO
-# heatmap 20.60 -> 21
-
 
 # ACTIONS
 GO_LEFT, STAY, GO_RIGHT = 0, 1, 2
@@ -42,14 +39,13 @@ TEST_LIST = [
         "id": "third",
         "epochs": EPOCHS,
         "show_n_time": 0,
-        "q_table_dimension": 40,
+        "q_table_dimension": 100,
         "learning_rate": 0.1,
         "discount": 0.95,
         "epsilon": 0.5,
         "epsilon_decaying_range": (1, EPOCHS//2)
     }
 ]
-
 
 
 def plot_graph_result(epoch_list, avg_list, max_list, min_list):
@@ -59,8 +55,16 @@ def plot_graph_result(epoch_list, avg_list, max_list, min_list):
     plt.legend(loc='upper left')
     plt.show()
 
-def plot_heat_map():
-    pass
+
+def plot_heat_map(q_table):
+    heatmap = np.max(q_table, 2)
+    plt.imshow(heatmap, cmap='YlOrRd', interpolation='nearest')
+    plt.title("State Value function")
+    plt.xlabel("Speed (-0.07 to 0.07)")
+    plt.ylabel("Position (-1.2 to 0.6)")
+    plt.gca().invert_yaxis()
+    plt.colorbar()
+    plt.show()
 
 
 def launch_new_q_learning_test(epoch_number, n_show, q_table_dimension, learning_rate, discount, epsilon, epsilon_decaying_range):
@@ -149,7 +153,7 @@ def launch_new_q_learning_test(epoch_number, n_show, q_table_dimension, learning
 
     env.close()
     plot_graph_result(aggr_ep_rewards["epoch"], aggr_ep_rewards["avg_value"], aggr_ep_rewards["max_value"], aggr_ep_rewards["min_value"])
-
+    plot_heat_map(q_table)
 
 
 def main():
