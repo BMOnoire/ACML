@@ -1,9 +1,7 @@
-import os
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # lighter system log
 import config as cfg
 import janitor as jn
 
@@ -28,14 +26,12 @@ def plot_graph_result(test_name, epoch_list, avg_list, max_list, min_list, show=
 
 
 def plot_heat_map(test_name, q_table, show=False):
-    heatmap = np.max(q_table, 2)
-    plt.imshow(heatmap, cmap='jet', interpolation='nearest', extent=[-0.07, 0.07, -1.2, 0.6], aspect='auto')
+    heatmap = np.max(q_table, axis=2)
+    plt.imshow(heatmap, cmap='jet', interpolation='nearest', extent=[-0.07, 0.07, 0.6, -1.2], aspect='auto')
     plt.title("State Value function")
-    #plt.ax(-0.07, 0.07)
-    #plt.set_ylim(-1.2, 0.6)
     plt.xlabel("Speed (-0.07 to 0.07)")
     plt.ylabel("Position (-1.2 to 0.6)")
-    #plt.gca().invert_yaxis()
+    plt.gca().invert_yaxis()
     plt.colorbar()
 
     date = time.strftime("%Y_%m_%d_%H_%M_%S")
@@ -49,7 +45,7 @@ def plot_heat_map(test_name, q_table, show=False):
 
 def launch_new_q_learning_test(test_id, epoch_number, n_show, q_table_dimension, learning_rate, discount, epsilon, epsilon_decaying_range):
     epoch_rewards = []
-    aggr_ep_rewards = {
+    test_result = {
         "epoch": [],
         "avg_value": [],
         "min_value": [],
@@ -122,16 +118,16 @@ def launch_new_q_learning_test(test_id, epoch_number, n_show, q_table_dimension,
 
         if not epoch % save_range:
             average_reward = sum(epoch_rewards[-save_range:])/len(epoch_rewards[-save_range:])
-            aggr_ep_rewards["epoch"].append(epoch)
-            aggr_ep_rewards["avg_value"].append(average_reward)
-            aggr_ep_rewards["min_value"].append(min(epoch_rewards[-save_range:]))
-            aggr_ep_rewards["max_value"].append(max(epoch_rewards[-save_range:]))
+            test_result["epoch"].append(epoch)
+            test_result["avg_value"].append(average_reward)
+            test_result["min_value"].append(min(epoch_rewards[-save_range:]))
+            test_result["max_value"].append(max(epoch_rewards[-save_range:]))
 
             #print("Epoch:", epoch, "average:", average_reward, "min:", min(epoch_rewards[-save_range:]), "max:", max(epoch_rewards[-save_range:]))
     print("tot time:", time.time()-start)
 
     env.close()
-    plot_graph_result(test_id, aggr_ep_rewards["epoch"], aggr_ep_rewards["avg_value"], aggr_ep_rewards["max_value"], aggr_ep_rewards["min_value"])
+    plot_graph_result(test_id, test_result["epoch"], test_result["avg_value"], test_result["max_value"], test_result["min_value"])
     plot_heat_map(test_id, q_table)
 
 
