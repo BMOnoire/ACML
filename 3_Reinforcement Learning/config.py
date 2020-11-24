@@ -1,18 +1,37 @@
 from pathlib import Path
 
-general = {
-    "pickle_path": Path("pickels"),
-    "imgs_path": Path("imgs"),
-    "models_path": Path("models"),
-    "images_list": [0, 2, 3, 5, 6]
-}
+EPOCHS = 1000
 
-nn = {
-    "epochs": 1,
-    "batch_size": 50,
-    "optimizer": "Adam",
-    "loss": "mean_squared_error",
-    "metrics": ["accuracy"]
-}
-
+TEST_LIST = [
+    {
+        "id": "first",
+        "epochs": EPOCHS,
+        "show_n_time": 0,
+        "q_table_dimension": 10,
+        "learning_rate": 0.1,
+        "discount": 0.95,
+        "epsilon": 0.5,
+        "epsilon_decaying_range": (1, EPOCHS//2)
+    },
+    {
+        "id": "second",
+        "epochs": EPOCHS,
+        "show_n_time": 0,
+        "q_table_dimension": 20,
+        "learning_rate": 0.1,
+        "discount": 0.95,
+        "epsilon": 0.5,
+        "epsilon_decaying_range": (1, EPOCHS//2)
+    },
+    {
+        "id": "third",
+        "epochs": EPOCHS,
+        "show_n_time": 0,
+        "q_table_dimension": 100,
+        "learning_rate": 0.1,
+        "discount": 0.95,
+        "epsilon": 0.5,
+        "epsilon_decaying_range": (1, EPOCHS//2)
+    }
+]
 

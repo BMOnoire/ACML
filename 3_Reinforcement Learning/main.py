@@ -12,43 +12,6 @@ import janitor as jn
 GO_LEFT, STAY, GO_RIGHT = 0, 1, 2
 
 
-EPOCHS = 50
-
-TEST_LIST = [
-    {
-        "id": "first",
-        "epochs": EPOCHS,
-        "show_n_time": 0,
-        "q_table_dimension": 10,
-        "learning_rate": 0.1,
-        "discount": 0.95,
-        "epsilon": 0.5,
-        "epsilon_decaying_range": (1, EPOCHS//2)
-    },
-    {
-        "id": "second",
-        "epochs": EPOCHS,
-        "show_n_time": 0,
-        "q_table_dimension": 20,
-        "learning_rate": 0.1,
-        "discount": 0.95,
-        "epsilon": 0.5,
-        "epsilon_decaying_range": (1, EPOCHS//2)
-    },
-    {
-        "id": "third",
-        "epochs": EPOCHS,
-        "show_n_time": 0,
-        "q_table_dimension": 100,
-        "learning_rate": 0.1,
-        "discount": 0.95,
-        "epsilon": 0.5,
-        "epsilon_decaying_range": (1, EPOCHS//2)
-    }
-]
-
-date = time.strftime("%Y_%m_%d_%H_%M_%S")
-
 def plot_graph_result(test_name, epoch_list, avg_list, max_list, min_list, show=False):
     plt.plot(epoch_list, avg_list, label="avg", color="green")
     plt.plot(epoch_list, max_list, label="max", color="red")
@@ -61,14 +24,18 @@ def plot_graph_result(test_name, epoch_list, avg_list, max_list, min_list, show=
     if show:
         plt.show()
 
+    plt.clf()
+
 
 def plot_heat_map(test_name, q_table, show=False):
     heatmap = np.max(q_table, 2)
-    plt.imshow(heatmap, cmap='YlOrRd', interpolation='nearest')
+    plt.imshow(heatmap, cmap='jet', interpolation='nearest', extent=[-0.07, 0.07, -1.2, 0.6], aspect='auto')
     plt.title("State Value function")
+    #plt.ax(-0.07, 0.07)
+    #plt.set_ylim(-1.2, 0.6)
     plt.xlabel("Speed (-0.07 to 0.07)")
     plt.ylabel("Position (-1.2 to 0.6)")
-    plt.gca().invert_yaxis()
+    #plt.gca().invert_yaxis()
     plt.colorbar()
 
     date = time.strftime("%Y_%m_%d_%H_%M_%S")
@@ -76,6 +43,8 @@ def plot_heat_map(test_name, q_table, show=False):
 
     if show:
         plt.show()
+
+    plt.clf()
 
 
 def launch_new_q_learning_test(test_id, epoch_number, n_show, q_table_dimension, learning_rate, discount, epsilon, epsilon_decaying_range):
@@ -89,7 +58,6 @@ def launch_new_q_learning_test(test_id, epoch_number, n_show, q_table_dimension,
 
     np.random.seed(1)
     env = gym.make("MountainCar-v0")
-
     observation_size = len(env.observation_space.high) # S, V
     discrete_observation_size = [q_table_dimension] * observation_size
     discrete_observation_steps = (env.observation_space.high - env.observation_space.low) / discrete_observation_size
@@ -105,10 +73,6 @@ def launch_new_q_learning_test(test_id, epoch_number, n_show, q_table_dimension,
     def get_discrete_state(state): # the indexes about what state we are
         discrete_state = (state - env.observation_space.low) / discrete_observation_steps
         return tuple(discrete_state.astype(np.int))
-
-    def get_continuous_state(state):
-        continuous_state = (state + env.observation_space.low) * discrete_observation_steps
-        return tuple(discrete_state.astype(np.float))
 
     start = time.time()
     for epoch in range(1, epoch_number+1):
@@ -173,7 +137,7 @@ def launch_new_q_learning_test(test_id, epoch_number, n_show, q_table_dimension,
 
 def main():
     jn.create_dir("imgs")
-    for test in TEST_LIST:
+    for test in cfg.TEST_LIST:
         launch_new_q_learning_test(
             test["id"],
             test["epochs"],
