@@ -1,5 +1,7 @@
-To launch the project just install the requirements:
+To launch the project just install the libraries:
 
-	pip install -r requirements.txt
+	pip install gym
+	pip install numpy
+	pip install matplotlib
 
 Then launch main.py

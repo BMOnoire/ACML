@@ -44,6 +44,8 @@ def plot_heat_map(test_name, q_table, show=False):
 
 
 def launch_new_q_learning_test(test_id, epoch_number, n_show, q_table_dimension, learning_rate, discount, epsilon, epsilon_decaying_range):
+    print(f"\nNew test {test_id}")
+
     epoch_rewards = []
     test_result = {
         "epoch": [],
@@ -54,62 +56,60 @@ def launch_new_q_learning_test(test_id, epoch_number, n_show, q_table_dimension,
 
     np.random.seed(1)
     env = gym.make("MountainCar-v0")
-    observation_size = len(env.observation_space.high) # S, V
+    observation_size = len(env.observation_space.high)  # S, V
     discrete_observation_size = [q_table_dimension] * observation_size
+    q_table_size = discrete_observation_size + [env.action_space.n]  # + A
+    q_table = np.random.uniform(low=-2, high=0, size=(q_table_size)) #(N, N, 3)
+
+    epsilon_decay_value = epsilon / (epsilon_decaying_range[1] - epsilon_decaying_range[0])
+
     discrete_observation_steps = (env.observation_space.high - env.observation_space.low) / discrete_observation_size
 
-    q_table_size = discrete_observation_size + [env.action_space.n]
-    q_table = np.random.uniform(low=-2, high=0, size=(q_table_size)) #(N, N, 3)
+    def transform_discrete_state(state): # transform continuos state in the indexes about in which state we are
+        discrete_state = (state - env.observation_space.low) / discrete_observation_steps
+        return tuple(discrete_state.astype(np.int))
 
     first_goal = True
     show_range = epoch_number // n_show if n_show else epoch_number + 1
     save_range = epoch_number // 100 if epoch_number > 100 else 1
-    epsilon_decay_value = epsilon / (epsilon_decaying_range[1] - epsilon_decaying_range[0])
-
-    def get_discrete_state(state): # the indexes about what state we are
-        discrete_state = (state - env.observation_space.low) / discrete_observation_steps
-        return tuple(discrete_state.astype(np.int))
-
+    goal_counter = 0
     start = time.time()
     for epoch in range(1, epoch_number+1):
-        #print(epoch)
 
         epoch_reward = 0
 
-        discrete_state = get_discrete_state(env.reset())
-
+        current_discrete_state = transform_discrete_state(env.reset())
 
         render = True if not epoch % show_range else False
 
         done = False
         while not done:
-            if np.random.random() > epsilon:
-                action = np.argmax(q_table[discrete_state])
-            else:
-                action = np.random.randint(0, env.action_space.n)
+            # there's a probability of epsilon that there is only random exploration
+            action = np.argmax(q_table[current_discrete_state]) if np.random.random() > epsilon else np.random.randint(0, env.action_space.n)
 
             new_state, reward, done, env_msg = env.step(action)
-
             epoch_reward += reward
 
-            new_discrete_state = get_discrete_state(new_state)
+            new_discrete_state = transform_discrete_state(new_state)
+            index_q = current_discrete_state + (action,)  # (Pi, Vi, Ai)
 
             if render:
                 env.render()
 
-            if not done:
-                max_future_q = np.max(q_table[new_discrete_state])
-                current_q = q_table[discrete_state + (action,  )]
+            if not done:  # udate q_table with the Q function
+                max_Q = np.max(q_table[new_discrete_state])
+                current_Q = q_table[index_q]
+                new_Q = (1 - learning_rate) * current_Q + learning_rate * (reward + discount * max_Q)
+                q_table[index_q] = new_Q
 
-                new_q = (1 - learning_rate) * current_q + learning_rate * (reward + discount * max_future_q)
-                q_table[discrete_state + (action, )] = new_q
-            elif new_state[0] >= env.goal_position:
+            elif new_state[0] >= env.goal_position:  # if the car reached the flag
+                goal_counter += 1
                 if first_goal:
                     print("Reached the goal on epoch", epoch)
                     first_goal = False
-                q_table[discrete_state + (action, )] = 0
+                q_table[index_q] = 0  # best value
 
-            discrete_state = new_discrete_state
+            current_discrete_state = new_discrete_state
 
         if epsilon_decaying_range[0] <= epoch <= epsilon_decaying_range[1]:
             epsilon -= epsilon_decay_value
@@ -123,8 +123,8 @@ def launch_new_q_learning_test(test_id, epoch_number, n_show, q_table_dimension,
             test_result["min_value"].append(min(epoch_rewards[-save_range:]))
             test_result["max_value"].append(max(epoch_rewards[-save_range:]))
 
-            #print("Epoch:", epoch, "average:", average_reward, "min:", min(epoch_rewards[-save_range:]), "max:", max(epoch_rewards[-save_range:]))
     print("tot time:", time.time()-start)
+    print("tot goal reached:", goal_counter)
 
     env.close()
     plot_graph_result(test_id, test_result["epoch"], test_result["avg_value"], test_result["max_value"], test_result["min_value"])
