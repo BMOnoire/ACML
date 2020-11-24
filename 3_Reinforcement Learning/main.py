@@ -117,11 +117,12 @@ def launch_new_q_learning_test(test_id, epoch_number, n_show, q_table_dimension,
         epoch_rewards.append(epoch_reward)
 
         if not epoch % save_range:
-            average_reward = sum(epoch_rewards[-save_range:])/len(epoch_rewards[-save_range:])
+            save_range_list = epoch_rewards[-save_range:]
+            average_reward = sum(save_range_list)/len(save_range_list)
             test_result["epoch"].append(epoch)
             test_result["avg_value"].append(average_reward)
-            test_result["min_value"].append(min(epoch_rewards[-save_range:]))
-            test_result["max_value"].append(max(epoch_rewards[-save_range:]))
+            test_result["min_value"].append(min(save_range_list))
+            test_result["max_value"].append(max(save_range_list))
 
     print("tot time:", time.time()-start)
     print("tot goal reached:", goal_counter)
