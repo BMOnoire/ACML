@@ -12,7 +12,7 @@ import janitor as jn
 GO_LEFT, STAY, GO_RIGHT = 0, 1, 2
 
 
-EPOCHS = 5000
+EPOCHS = 50
 
 TEST_LIST = [
     {
@@ -47,16 +47,22 @@ TEST_LIST = [
     }
 ]
 
+date = time.strftime("%Y_%m_%d_%H_%M_%S")
 
-def plot_graph_result(epoch_list, avg_list, max_list, min_list):
+def plot_graph_result(test_name, epoch_list, avg_list, max_list, min_list, show=False):
     plt.plot(epoch_list, avg_list, label="avg", color="green")
     plt.plot(epoch_list, max_list, label="max", color="red")
     plt.plot(epoch_list, min_list, label="min", color="blue")
     plt.legend(loc='upper left')
-    plt.show()
+
+    date = time.strftime("%Y_%m_%d_%H_%M_%S")
+    plt.savefig(f"imgs\\graph_test_{test_name}_{date}")
+
+    if show:
+        plt.show()
 
 
-def plot_heat_map(q_table):
+def plot_heat_map(test_name, q_table, show=False):
     heatmap = np.max(q_table, 2)
     plt.imshow(heatmap, cmap='YlOrRd', interpolation='nearest')
     plt.title("State Value function")
@@ -64,10 +70,15 @@ def plot_heat_map(q_table):
     plt.ylabel("Position (-1.2 to 0.6)")
     plt.gca().invert_yaxis()
     plt.colorbar()
-    plt.show()
+
+    date = time.strftime("%Y_%m_%d_%H_%M_%S")
+    plt.savefig(f"imgs\\heatmap_test_{test_name}_{date}")
+
+    if show:
+        plt.show()
 
 
-def launch_new_q_learning_test(epoch_number, n_show, q_table_dimension, learning_rate, discount, epsilon, epsilon_decaying_range):
+def launch_new_q_learning_test(test_id, epoch_number, n_show, q_table_dimension, learning_rate, discount, epsilon, epsilon_decaying_range):
     epoch_rewards = []
     aggr_ep_rewards = {
         "epoch": [],
@@ -94,6 +105,10 @@ def launch_new_q_learning_test(epoch_number, n_show, q_table_dimension, learning
     def get_discrete_state(state): # the indexes about what state we are
         discrete_state = (state - env.observation_space.low) / discrete_observation_steps
         return tuple(discrete_state.astype(np.int))
+
+    def get_continuous_state(state):
+        continuous_state = (state + env.observation_space.low) * discrete_observation_steps
+        return tuple(discrete_state.astype(np.float))
 
     start = time.time()
     for epoch in range(1, epoch_number+1):
@@ -152,13 +167,15 @@ def launch_new_q_learning_test(epoch_number, n_show, q_table_dimension, learning
     print("tot time:", time.time()-start)
 
     env.close()
-    plot_graph_result(aggr_ep_rewards["epoch"], aggr_ep_rewards["avg_value"], aggr_ep_rewards["max_value"], aggr_ep_rewards["min_value"])
-    plot_heat_map(q_table)
+    plot_graph_result(test_id, aggr_ep_rewards["epoch"], aggr_ep_rewards["avg_value"], aggr_ep_rewards["max_value"], aggr_ep_rewards["min_value"])
+    plot_heat_map(test_id, q_table)
 
 
 def main():
+    jn.create_dir("imgs")
     for test in TEST_LIST:
         launch_new_q_learning_test(
+            test["id"],
             test["epochs"],
             test["show_n_time"],
             test["q_table_dimension"],
